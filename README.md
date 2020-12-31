@@ -2,20 +2,20 @@
 
 Modular import plugin for babel, compatible with [antd](https://github.com/ant-design/ant-design), [antd-mobile](https://github.com/ant-design/ant-design-mobile), lodash, [material-ui](http://material-ui.com/), and so on.
 
-[![NPM version](https://img.shields.io/npm/v/babel-plugin-import.svg?style=flat)](https://npmjs.org/package/babel-plugin-import)
-[![Build Status](https://img.shields.io/travis/ant-design/babel-plugin-import.svg?style=flat)](https://travis-ci.org/ant-design/babel-plugin-import)
+
+**PRIVATE BUILD** (forked from [ant-design repo](https://github.com/ant-design/babel-plugin-import))
+
+
+## Installation
+```
+npm i -D https://github.com/genx-tech/babel-plugin-import.git
+```
+
+## New features added
+
+- [Library prefix match](https://github.com/genx-tech/babel-plugin-import#prefixmatch)
 
 ----
-
-## Why babel-plugin-import
-
-- [English Instruction](https://ant.design/docs/react/getting-started#Import-on-Demand)
-- [中文说明](https://ant.design/docs/react/getting-started-cn#%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD)
-
-## Where to add babel-plugin-import
-
-- [babelrc](https://babeljs.io/docs/usage/babelrc/)
-- [babel-loader](https://github.com/babel/babel-loader)
 
 ## Example
 
@@ -279,3 +279,7 @@ Set this option to `false` if your module does not have a `default` export.
 ### Note
 
 babel-plugin-import will not work properly if you add the library to the webpack config [vendor](https://webpack.js.org/concepts/entry-points/#separate-app-and-vendor-entries).
+
+## License
+
+MIT
