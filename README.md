@@ -130,6 +130,23 @@ For Example:
 ]
 ```
 
+#### prefixMatch
+
+When `prefixMatch` is enabled (`"prefixMatch": true`), this plugin will also transpile libraries starting with with the `libraryName` as prefix.
+
+For Example:
+```javascrit
+{
+    libraryName: '@genx/react',
+    prefixMatch: true, // will transpile '@genx/react/i18n' to '@genx/react/lib/commonjs/i18n' as well
+    libraryDirectory: 'lib/commonjs',
+    camel2DashComponentName: false
+}
+
+// The below import will be transpiled into import I18nProvider from '@genx/react/lib/commonjs/i18n/I18nProvider';
+import { I18nProvider } from '@genx/react/i18n';
+```
+
 #### style
 
 - `["import", { "libraryName": "antd" }]`: import js modularly
