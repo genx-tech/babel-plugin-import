@@ -2,7 +2,7 @@
 /tmp
 /node_modules
 /coverage
-/lib
+#/lib
 /*.log
 /*.log.*
 /yarn.lock
