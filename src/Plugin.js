@@ -62,7 +62,6 @@ export default class Plugin {
   }
 
   importMethod(methodName, file, pluginState) {
-    console.log('enter importMethod', methodName);
     if (!pluginState.selectedMethods[methodName]) {
       const { style, libraryDirectory } = this;
       let transformedMethodName = this.camel2UnderlineComponentName // eslint-disable-line
@@ -88,7 +87,6 @@ export default class Plugin {
         ? addDefault(file.path, path, { nameHint: methodName })
         : addNamed(file.path, methodName, path);
 
-      console.log(methodName, path, pluginState.selectedMethods[methodName]);
       pluginState.libraryTranspiledMark[path] = true; // eslint-disable-line
 
       if (this.customStyleName) {
@@ -123,7 +121,6 @@ export default class Plugin {
         pluginState.specified[node[prop].name] &&
         types.isImportSpecifier(path.scope.getBinding(node[prop].name).path)
       ) {
-        console.log('build expr import', node[prop].name, pluginState.specified[node[prop].name]);
         node[prop] = this.importMethod(pluginState.specified[node[prop].name], file, pluginState); // eslint-disable-line
       }
     });
@@ -140,16 +137,10 @@ export default class Plugin {
       path.scope.getBinding(targetNode.name).path.type === 'ImportSpecifier'; // eslint-disable-line
 
     if (types.isIdentifier(node[prop]) && checkScope(node[prop])) {
-      console.log('build expr import1', node[prop].name, pluginState.specified[node[prop].name]);
       node[prop] = this.importMethod(pluginState.specified[node[prop].name], file, pluginState); // eslint-disable-line
     } else if (types.isSequenceExpression(node[prop])) {
       node[prop].expressions.forEach((expressionNode, index) => {
         if (types.isIdentifier(expressionNode) && checkScope(expressionNode)) {
-          console.log(
-            'build decl import2',
-            expressionNode.name,
-            pluginState.specified[expressionNode.name],
-          );
           /* eslint-disable no-param-reassign */
           node[prop].expressions[index] = this.importMethod(
             pluginState.specified[expressionNode.name],
@@ -193,7 +184,6 @@ export default class Plugin {
         value.startsWith(libraryNamePrefix) &&
         !pluginState.libraryTranspiledMark[value])
     ) {
-      console.log(value);
       node.specifiers.forEach(spec => {
         if (types.isImportSpecifier(spec)) {
           pluginState.specified[spec.local.name] = spec.imported.name;
@@ -203,10 +193,8 @@ export default class Plugin {
               libraryName.length + 1,
             );
           }
-          console.log('specified', spec.local.name, spec.imported.name);
         } else {
           pluginState.libraryObjs[spec.local.name] = true;
-          console.log('libraryObjs', spec.local.name);
         }
       });
       pluginState.pathsToRemove.push(path);
@@ -221,9 +209,7 @@ export default class Plugin {
     const pluginState = this.getPluginState(state);
 
     if (types.isIdentifier(node.callee)) {
-      console.log('call', name, node.callee);
       if (pluginState.specified[name]) {
-        console.log('CallExpression', name, pluginState.specified[name]);
         node.callee = this.importMethod(pluginState.specified[name], file, pluginState);
       }
     }
@@ -235,7 +221,6 @@ export default class Plugin {
         path.scope.hasBinding(argName) &&
         path.scope.getBinding(argName).path.type === 'ImportSpecifier'
       ) {
-        console.log('Call Argument ', argName, pluginState.specified[argName]);
         return this.importMethod(pluginState.specified[argName], file, pluginState);
       }
       return arg;
@@ -251,15 +236,12 @@ export default class Plugin {
     if (!node.object || !node.object.name) return;
 
     if (pluginState.libraryObjs[node.object.name]) {
-      console.log('member is libraryObjs', node.object.name);
-      console.log('member import', node.property.name);
       // antd.Button -> _Button
       path.replaceWith(this.importMethod(node.property.name, file, pluginState));
     } else if (pluginState.specified[node.object.name] && path.scope.hasBinding(node.object.name)) {
       const { scope } = path.scope.getBinding(node.object.name);
       // global variable in file scope
       if (scope.path.parent.type === 'File') {
-        console.log('member import', node.object.name, pluginState.specified[node.object.name]);
         node.object = this.importMethod(pluginState.specified[node.object.name], file, pluginState);
       }
     }
