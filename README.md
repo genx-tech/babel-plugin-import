@@ -276,6 +276,39 @@ module.exports = function customName(name) {
 
 Set this option to `false` if your module does not have a `default` export.
 
+#### memberUseNamedImport
+
+Set this option to `true` to make member reference use named import instead of default import.
+
+When prefixMatch is enabled, memberUseNamedImport will use `true` as default.
+
+As a CommonJS module, objects with named export are not reside in the default exported object. 
+
+Named export cannot be retrieved using destructure assignment or member access. See MDN export for details.  
+
+```javascrit
+
+/* with the config below
+{
+    libraryName: '@genx/react',
+    prefixMatch: true, // will transpile '@genx/react/i18n' to '@genx/react/lib/commonjs/i18n' as well
+    libraryDirectory: 'lib/commonjs',
+    camel2DashComponentName: false,
+    memberUseNamedImport: true
+}
+*/
+
+import RuntimeLib from '@genx/react/Runtime'; // transpile to '@genx/react/lib/commonjs/Runtime'
+import { Runtime } from '@genx/react'; // transpile to '@genx/react/lib/commonjs/Runtime'
+
+RuntimeLib.updateRuntime(...); // will import { updateRuntime } from '@genx/react/lib/commonjs/Runtime'
+
+// however,
+Runtime.updateRuntime(...); // will not import { updateRuntime } from '@genx/react/lib/commonjs/Runtime'
+// will directly call member method updateRuntime
+
+```
+
 ### Note
 
 babel-plugin-import will not work properly if you add the library to the webpack config [vendor](https://webpack.js.org/concepts/entry-points/#separate-app-and-vendor-entries).

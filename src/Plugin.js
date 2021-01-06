@@ -34,6 +34,7 @@ export default class Plugin {
     fileName,
     customName,
     transformToDefaultImport,
+    memberUseNamedImport,
     types,
     index = 0,
   ) {
@@ -50,6 +51,8 @@ export default class Plugin {
     this.customName = normalizeCustomName(customName);
     this.transformToDefaultImport =
       typeof transformToDefaultImport === 'undefined' ? true : transformToDefaultImport;
+    this.memberUseNamedImport =
+      memberUseNamedImport == null ? this.prefixMatch : memberUseNamedImport;
     this.types = types;
     this.pluginStateKey = `importPluginState${index}`;
   }
@@ -61,7 +64,7 @@ export default class Plugin {
     return state[this.pluginStateKey];
   }
 
-  importMethod(methodName, file, pluginState) {
+  importMethod(methodName, file, pluginState, memberParentName) {
     if (!pluginState.selectedMethods[methodName]) {
       const { style, libraryDirectory } = this;
       let transformedMethodName = this.camel2UnderlineComponentName // eslint-disable-line
@@ -70,11 +73,17 @@ export default class Plugin {
         ? transCamel(methodName, '-')
         : methodName;
 
-      if (pluginState.libraryPathMapping[methodName]) {
-        transformedMethodName = join(
-          pluginState.libraryPathMapping[methodName],
-          transformedMethodName,
-        );
+      const libSuffix =
+        pluginState.libraryPathMapping[
+          memberParentName ? `${memberParentName}.${methodName}` : methodName
+        ];
+
+      if (libSuffix) {
+        if (memberParentName && this.memberUseNamedImport) {
+          transformedMethodName = libSuffix;
+        } else {
+          transformedMethodName = join(libSuffix, transformedMethodName);
+        }
       }
 
       const path = winPath(
@@ -83,7 +92,10 @@ export default class Plugin {
           : join(this.libraryName, libraryDirectory, transformedMethodName, this.fileName), // eslint-disable-line
       );
 
-      pluginState.selectedMethods[methodName] = this.transformToDefaultImport // eslint-disable-line
+      const useDefaultImport =
+        this.transformToDefaultImport && (!memberParentName || !this.memberUseNamedImport);
+
+      pluginState.selectedMethods[methodName] = useDefaultImport // eslint-disable-line
         ? addDefault(file.path, path, { nameHint: methodName })
         : addNamed(file.path, methodName, path);
 
@@ -195,6 +207,14 @@ export default class Plugin {
           }
         } else {
           pluginState.libraryObjs[spec.local.name] = true;
+          if (value !== libraryName) {
+            // when (libraryName)/followingPath matched
+            if (!pluginState.libraryPathMapping[spec.local.name]) {
+              pluginState.libraryPathMapping[spec.local.name] = value.substr(
+                libraryName.length + 1,
+              );
+            }
+          }
         }
       });
       pluginState.pathsToRemove.push(path);
@@ -236,8 +256,16 @@ export default class Plugin {
     if (!node.object || !node.object.name) return;
 
     if (pluginState.libraryObjs[node.object.name]) {
+      const refName = `${node.object.name}.${node.property.name}`;
+
+      if (
+        pluginState.libraryPathMapping[node.object.name] &&
+        !pluginState.libraryPathMapping[refName]
+      ) {
+        pluginState.libraryPathMapping[refName] = pluginState.libraryPathMapping[node.object.name];
+      }
       // antd.Button -> _Button
-      path.replaceWith(this.importMethod(node.property.name, file, pluginState));
+      path.replaceWith(this.importMethod(node.property.name, file, pluginState, node.object.name));
     } else if (pluginState.specified[node.object.name] && path.scope.hasBinding(node.object.name)) {
       const { scope } = path.scope.getBinding(node.object.name);
       // global variable in file scope

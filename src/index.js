@@ -38,6 +38,7 @@ export default function ({ types }) {
                 fileName,
                 customName,
                 transformToDefaultImport,
+                memberUseNamedImport,
               },
               index,
             ) => {
@@ -54,6 +55,7 @@ export default function ({ types }) {
                 fileName,
                 customName,
                 transformToDefaultImport,
+                memberUseNamedImport,
                 types,
                 index,
               );
@@ -74,6 +76,7 @@ export default function ({ types }) {
               opts.fileName,
               opts.customName,
               opts.transformToDefaultImport,
+              opts.memberUseNamedImport,
               types,
             ),
           ];
