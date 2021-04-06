@@ -128,7 +128,25 @@ export default class Plugin {
     const { types } = this;
     const pluginState = this.getPluginState(state);
     props.forEach(prop => {
+      if (prop === 'arguments' && Array.isArray(node.arguments)) {
+        node.arguments = node.arguments.map(arg => {
+          // eslint-disable-line
+          const { name: argName } = arg;
+          if (
+            pluginState.specified[argName] &&
+            path.scope.hasBinding(argName) &&
+            path.scope.getBinding(argName).path.type === 'ImportSpecifier'
+          ) {
+            return this.importMethod(pluginState.specified[argName], file, pluginState);
+          }
+          return arg;
+        });
+
+        return;
+      }
+
       if (!types.isIdentifier(node[prop])) return;
+
       if (
         pluginState.specified[node[prop].name] &&
         types.isImportSpecifier(path.scope.getBinding(node[prop].name).path)
